@@ -1,4 +1,4 @@
-# Word Puzzle Game (.NET MAUI)
+# Word Puzzle Game
 
 A simple and visually appealing word puzzle game built with .NET MAUI and MVVM architecture.
 
