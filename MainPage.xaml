@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="WordPuzzleGame.MainPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:WordPuzzleGame.ViewModels"
+    Title="Word Puzzle">
+
+    <ContentPage.BindingContext>
+        <vm:WordPuzzleViewModel />
+    </ContentPage.BindingContext>
+
+    <Grid>
+        <!-- Beautiful background image -->
+        <Image Source="dotnet_bot.png"
+               Aspect="AspectFill"
+               Opacity="0.25"
+               IsVisible="True"
+               VerticalOptions="FillAndExpand"
+               HorizontalOptions="FillAndExpand"
+               ZIndex="0" />
+
+        <ScrollView ZIndex="1">
+            <VerticalStackLayout
+                Padding="30,0"
+                Spacing="25"
+                VerticalOptions="Center">
+                <!--  Shuffled letters as draggable tiles  -->
+                <HorizontalStackLayout
+                    x:Name="TilesPanel"
+                    Margin="0,10,0,10"
+                    HorizontalOptions="Center"
+                    Spacing="40">
+                    <CollectionView
+                        ItemsLayout="HorizontalList"
+                        ItemsSource="{Binding ShuffledWordTiles}"
+                        SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,10,0"
+                                    Padding="10,0,10,10"
+                                    BackgroundColor="#e0e7ff"
+                                    HeightRequest="66"
+                                    Stroke="#4e8cff"
+                                    StrokeShape="RoundRectangle 8"
+                                    VerticalOptions="End"
+                                    WidthRequest="56">
+                                    <Border.StrokeThickness>1</Border.StrokeThickness>
+                                    <Label
+                                        FontSize="36"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding .}"
+                                        VerticalOptions="End" />
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.TileTapCommand, Source={x:Reference Name=TilesPanel}}" CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </HorizontalStackLayout>
+
+                <!--  Drop area for answer  -->
+                <HorizontalStackLayout
+                    x:Name="DropPanel"
+                    Margin="0,10,0,10"
+                    HorizontalOptions="Center"
+                    Spacing="20">
+                    <!--  Increased spacing from 10 to 20  -->
+                    <CollectionView
+                        ItemsLayout="HorizontalList"
+                        ItemsSource="{Binding UserTiles}"
+                        SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,10,0"
+                                    Padding="10,0,10,10"
+                                    BackgroundColor="#fff7e6"
+                                    HeightRequest="66"
+                                    Stroke="#ffb84e"
+                                    StrokeShape="RoundRectangle 8"
+                                    VerticalOptions="End"
+                                    WidthRequest="56">
+                                    <Border.StrokeThickness>1</Border.StrokeThickness>
+                                    <Label
+                                        FontSize="36"
+                                        HorizontalOptions="Center"
+                                        Text="{Binding .}"
+                                        VerticalOptions="End" />
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </HorizontalStackLayout>
+
+                <!--  Feedback message  -->
+                <Label
+                    Margin="0,20,0,0"
+                    FontSize="20"
+                    HorizontalOptions="Center"
+                    Opacity="{Binding Message, Converter={StaticResource StringToOpacityConverter}}"
+                    Text="{Binding Message}"
+                    TextColor="{Binding IsSuccess, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green,Red'}" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+
+</ContentPage>
