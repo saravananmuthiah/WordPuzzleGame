@@ -13,9 +13,8 @@ A simple and visually appealing word puzzle game built with .NET MAUI and MVVM a
 ## How to Play
 1. Look at the large, shuffled letters.
 2. Type your guess in the input box.
-3. Press Submit.
-4. If correct, you’ll see a success message and move to the next word.
-5. If incorrect, you’ll see an error message and can try again.
+3. If correct, you’ll see a success message and move to the next word.
+4. If incorrect, you’ll see an error message and can try again.
 
 ## How to Run
 1. Open this folder in Visual Studio 2022+ or VS Code with .NET MAUI support.
