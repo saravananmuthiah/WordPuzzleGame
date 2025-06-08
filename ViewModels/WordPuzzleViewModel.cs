@@ -36,6 +36,14 @@ namespace WordPuzzleGame.ViewModels
                 {
                     _selectedTopic = value;
                     OnPropertyChanged(nameof(SelectedTopic));
+                    // Reset topic stats if topic changes
+                    if (_currentTopic != value)
+                    {
+                        _currentTopic = value;
+                        SuccessCount = 0;
+                        _wordsSeenInTopic = 0;
+                        _seenWords.Clear();
+                    }
                     // Load a new word when the topic changes
                     NextWord();
                 }
@@ -93,6 +101,13 @@ namespace WordPuzzleGame.ViewModels
             set { _isInputEnabled = value; OnPropertyChanged(nameof(IsInputEnabled)); }
         }
 
+        private bool _isHintAvailable = true;
+        public bool IsHintAvailable
+        {
+            get => _isHintAvailable;
+            set { _isHintAvailable = value; OnPropertyChanged(nameof(IsHintAvailable)); }
+        }
+
         public ICommand SubmitCommand { get; }
         public ICommand ShuffleCommand { get; }
         public ICommand TileTapCommand { get; }
@@ -112,6 +127,17 @@ namespace WordPuzzleGame.ViewModels
             get => _userTiles;
             set { _userTiles = value; OnPropertyChanged(nameof(UserTiles)); }
         }
+
+        private int _successCount = 0;
+        public int SuccessCount
+        {
+            get => _successCount;
+            set { _successCount = value; OnPropertyChanged(nameof(SuccessCount)); }
+        }
+        private string? _currentTopic;
+        private int _wordsSeenInTopic = 0;
+        private const int MaxWordsPerTopic = 20;
+        private HashSet<string> _seenWords = new();
 
         // Move to the next word, shuffle it, and reset state
         private void NextWord()
@@ -146,6 +172,7 @@ namespace WordPuzzleGame.ViewModels
                 IsError = false;
                 Message = "Well done!";
                 IsInputEnabled = false;
+                SuccessCount++;
                 await TextToSpeech.Default.SpeakAsync("Well done!");
                 await Task.Delay(1500);
                 NextWord();
@@ -154,8 +181,8 @@ namespace WordPuzzleGame.ViewModels
             {
                 IsError = true;
                 IsSuccess = false;
-                Message = "Try again!";
-                await TextToSpeech.Default.SpeakAsync("Try again!");
+                Message = $"Try again! The answer was: {_currentWord}";
+                await TextToSpeech.Default.SpeakAsync($"Try again! The answer was: {_currentWord}");
                 await Task.Delay(1000); // Short delay for feedback
                 NextWord(); // Reset the word after showing 'Try again!'
             }
@@ -198,14 +225,16 @@ namespace WordPuzzleGame.ViewModels
 
         private void RefreshHint()
         {
-            if (!string.IsNullOrEmpty(_currentWord))
+            if (!string.IsNullOrEmpty(_currentWord) && _currentWordDefs != null && _currentWordDefs.Length > 1)
             {
-                // Provide a new hint if available (e.g., next definition if multiple)
-                if (_currentWordDefs != null && _currentWordDefs.Length > 1)
-                {
-                    _currentHintIndex = (_currentHintIndex + 1) % _currentWordDefs.Length;
-                    Hint = $"Hint: {_currentWordDefs[_currentHintIndex].Split('\t').LastOrDefault()}";
-                }
+                _currentHintIndex = (_currentHintIndex + 1) % _currentWordDefs.Length;
+                Hint = $"Hint: {_currentWordDefs[_currentHintIndex].Split('\t').LastOrDefault()}";
+                // If we've cycled through all hints, disable the button
+                IsHintAvailable = _currentHintIndex < _currentWordDefs.Length - 1;
+            }
+            else
+            {
+                IsHintAvailable = false;
             }
         }
 
@@ -224,35 +253,53 @@ namespace WordPuzzleGame.ViewModels
         {
             try
             {
-                var httpClient = new HttpClient();
-                var length = _random.Next(2) == 0 ? 3 : 4;
-                var pos = _random.Next(length);
-                char randomChar = (char)('a' + _random.Next(26));
-                char[] patternArr = Enumerable.Repeat('?', length).ToArray();
-                patternArr[pos] = randomChar;
-                var pattern = new string(patternArr);
-                var url = $"https://api.datamuse.com/words?sp={pattern}&md=d&max=20";
-                if (!string.IsNullOrEmpty(SelectedTopic))
+                if (_wordsSeenInTopic >= MaxWordsPerTopic)
                 {
-                    url += $"&topics={SelectedTopic}";
+                    ShuffledWord = "Done!";
+                    Hint = $"You completed {MaxWordsPerTopic} words in this topic!";
+                    IsInputEnabled = false;
+                    return;
                 }
-                var response = await httpClient.GetStringAsync(url);
-                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var words = JsonSerializer.Deserialize<List<DatamuseWord>>(response, options);
-                var valid = words?.Where(w => !string.IsNullOrEmpty(w.Word) && w.Defs != null && w.Defs.Length > 0).ToList();
+                var httpClient = new HttpClient();
+                string pattern = string.Empty;
+                List<DatamuseWord>? valid = null;
+                int attempts = 0;
+                do
+                {
+                    var length = _random.Next(3, 6); // 3, 4, or 5
+                    var pos = _random.Next(length);
+                    char randomChar = (char)('a' + _random.Next(26));
+                    char[] patternArr = Enumerable.Repeat('?', length).ToArray();
+                    patternArr[pos] = randomChar;
+                    pattern = new string(patternArr);
+                    var url = $"https://api.datamuse.com/words?sp={pattern}&md=d&max=20";
+                    if (!string.IsNullOrEmpty(SelectedTopic))
+                    {
+                        url += $"&ml={SelectedTopic}&topics={SelectedTopic}";
+                    }
+                    var response = await httpClient.GetStringAsync(url);
+                    var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                    var words = JsonSerializer.Deserialize<List<DatamuseWord>>(response, options);
+                    valid = words?.Where(w => !string.IsNullOrEmpty(w.Word) && w.Defs != null && w.Defs.Length > 0 && !_seenWords.Contains(w.Word.ToLower())).ToList();
+                    attempts++;
+                } while ((valid == null || valid.Count == 0) && attempts < 5);
                 if (valid == null || valid.Count == 0)
                 {
                     ShuffledWord = "No valid words";
                     Hint = "Hint: No hint available.";
                     _currentWordDefs = null;
                     _currentHintIndex = 0;
+                    IsHintAvailable = false;
                     return;
                 }
                 var chosen = valid[_random.Next(valid.Count)];
                 _currentWord = chosen.Word.ToLower();
+                _seenWords.Add(_currentWord);
+                _wordsSeenInTopic++;
                 _currentWordDefs = chosen.Defs;
                 _currentHintIndex = 0;
                 Hint = $"Hint: {_currentWordDefs[0].Split('\t').LastOrDefault()}";
+                IsHintAvailable = _currentWordDefs.Length > 1;
                 ShuffledWord = Shuffle(_currentWord!);
                 ShuffledWordTiles = new ObservableCollection<string>(ShuffledWord.ToCharArray().Select(c => c.ToString()));
                 UserTiles = new ObservableCollection<string>(Enumerable.Repeat(string.Empty, _currentWord.Length));
@@ -268,6 +315,7 @@ namespace WordPuzzleGame.ViewModels
                 Hint = "Hint: Could not load word.";
                 _currentWordDefs = null;
                 _currentHintIndex = 0;
+                IsHintAvailable = false;
             }
         }
 

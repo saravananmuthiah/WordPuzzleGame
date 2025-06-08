@@ -14,6 +14,7 @@
             <!--  Converters for binding  -->
             <conv:BoolToColorConverter x:Key="BoolToColorConverter" />
             <conv:StringToOpacityConverter x:Key="StringToOpacityConverter" />
+            <conv:ThemeListConverter x:Key="ThemeListConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -10,6 +10,45 @@
         <vm:WordPuzzleViewModel />
     </ContentPage.BindingContext>
 
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <!-- Light theme -->
+            <Style x:Key="TopicLabelStyle" TargetType="Label">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="#4e8cff" />
+            </Style>
+            <Style x:Key="TileBorderStyle" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="#e0e7ff" />
+                <Setter Property="Stroke" Value="#4e8cff" />
+            </Style>
+            <Style x:Key="DropBorderStyle" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="#fff7e6" />
+                <Setter Property="Stroke" Value="#ffb84e" />
+            </Style>
+            <Style x:Key="MainPageBackground" TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="White" />
+            </Style>
+            <!-- Dark theme -->
+            <Style x:Key="TopicLabelStyleDark" TargetType="Label">
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="TextColor" Value="#90c4ff" />
+            </Style>
+            <Style x:Key="TileBorderStyleDark" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="#1a2233" />
+                <Setter Property="Stroke" Value="#90c4ff" />
+            </Style>
+            <Style x:Key="DropBorderStyleDark" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="#2a2a2a" />
+                <Setter Property="Stroke" Value="#ffd580" />
+            </Style>
+            <Style x:Key="MainPageBackgroundDark" TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="#181818" />
+            </Style>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <Grid>
         <!-- Beautiful background image -->
         <Image Source="dotnet_bot.png"
@@ -25,6 +64,13 @@
                 Padding="30,0"
                 Spacing="25"
                 VerticalOptions="Center">
+                <!-- Topic label -->
+                <Label
+                    Text="{Binding SelectedTopic, StringFormat='Topic: {0}'}"
+                    Style="{AppThemeBinding Light={StaticResource TopicLabelStyle}, Dark={StaticResource TopicLabelStyleDark}}"
+                    HorizontalOptions="Center"
+                    Margin="0,10,0,0" />
+
                 <!--  Shuffled letters as draggable tiles  -->
                 <HorizontalStackLayout
                     x:Name="TilesPanel"
@@ -42,10 +88,8 @@
                                 <Border
                                     Margin="0,0,10,0"
                                     Padding="10,0,10,10"
-                                    BackgroundColor="#e0e7ff"
+                                    Style="{AppThemeBinding Light={StaticResource TileBorderStyle}, Dark={StaticResource TileBorderStyleDark}}"
                                     HeightRequest="66"
-                                    Stroke="#4e8cff"
-                                    StrokeShape="RoundRectangle 8"
                                     VerticalOptions="End"
                                     WidthRequest="56">
                                     <Border.StrokeThickness>1</Border.StrokeThickness>
@@ -81,10 +125,8 @@
                                 <Border
                                     Margin="0,0,10,0"
                                     Padding="10,0,10,10"
-                                    BackgroundColor="#fff7e6"
+                                    Style="{AppThemeBinding Light={StaticResource DropBorderStyle}, Dark={StaticResource DropBorderStyleDark}}"
                                     HeightRequest="66"
-                                    Stroke="#ffb84e"
-                                    StrokeShape="RoundRectangle 8"
                                     VerticalOptions="End"
                                     WidthRequest="56">
                                     <Border.StrokeThickness>1</Border.StrokeThickness>
@@ -102,22 +144,24 @@
                 <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" HeightRequest="64">
                     <Label
                         FontSize="16"
-                        HorizontalOptions="Center"
+                        HorizontalOptions="Start"
                         Text="{Binding Hint}"
                         TextColor="Gray"
                         FontAttributes="Italic"
                         LineBreakMode="WordWrap"
                         MaxLines="4"
-                        WidthRequest="300"
+                        WidthRequest="260"
                         VerticalOptions="Center" />
                     <ImageButton
                         Source="refresh.png"
-                        HeightRequest="24"
-                        WidthRequest="24"
+                        HeightRequest="28"
+                        WidthRequest="28"
                         BackgroundColor="Transparent"
                         Command="{Binding RefreshHintCommand}"
                         IsVisible="{Binding Hint, Converter={StaticResource StringToOpacityConverter}}"
-                        VerticalOptions="Center" />
+                        IsEnabled="{Binding IsHintAvailable}"
+                        VerticalOptions="Center"
+                        Margin="10,0,0,0" />
                 </HorizontalStackLayout>
 
                 <Button

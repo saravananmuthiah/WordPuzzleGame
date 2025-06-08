@@ -4,7 +4,18 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:WordPuzzleGame"
+    xmlns:vm="clr-namespace:WordPuzzleGame.ViewModels"
     Title="WordPuzzleGame">
+
+    <Shell.FlyoutHeader>
+        <VerticalStackLayout Padding="20" Spacing="10">
+            <Label Text="Theme" FontSize="16" VerticalOptions="Center" />
+            <Picker
+                ItemsSource="{Binding Source={x:Static vm:ThemeViewModel.Themes}}"
+                SelectedItem="{Binding ThemeVM.CurrentTheme, Mode=TwoWay}"
+                VerticalOptions="Center"/>
+        </VerticalStackLayout>
+    </Shell.FlyoutHeader>
 
     <ShellContent
         ContentTemplate="{DataTemplate local:TopicSelectionPage}"
