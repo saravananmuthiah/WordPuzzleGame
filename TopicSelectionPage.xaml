@@ -25,7 +25,7 @@
             <Label Grid.Row="0" Grid.ColumnSpan="2" Text="Choose a Topic" FontSize="28" HorizontalOptions="Center" />
             <Button Grid.Row="1" Grid.Column="0" Text="Computer" Command="{Binding SelectTopicCommand}" CommandParameter="computer" />
             <Button Grid.Row="1" Grid.Column="1" Text="AI" Command="{Binding SelectTopicCommand}" CommandParameter="artificial intelligence" />
-            <Button Grid.Row="2" Grid.Column="0" Text="Programming" Command="{Binding SelectTopicCommand}" CommandParameter="programming" />
+            <Button Grid.Row="2" Grid.Column="0" Text="Programming" Command="{Binding SelectTopicCommand}" CommandParameter="computer programming" />
             <Button Grid.Row="2" Grid.Column="1" Text="Math" Command="{Binding SelectTopicCommand}" CommandParameter="math" />
             <Button Grid.Row="3" Grid.Column="0" Text="History" Command="{Binding SelectTopicCommand}" CommandParameter="history" />
             <Button Grid.Row="3" Grid.Column="1" Text="Fruit" Command="{Binding SelectTopicCommand}" CommandParameter="fruit" />
@@ -39,7 +39,8 @@
             <Button Grid.Row="7" Grid.Column="1" Text="Film" Command="{Binding SelectTopicCommand}" CommandParameter="film" />
             <Button Grid.Row="8" Grid.Column="0" Text="Medicine" Command="{Binding SelectTopicCommand}" CommandParameter="medicine" />
             <Button Grid.Row="8" Grid.Column="1" Text="Fitness" Command="{Binding SelectTopicCommand}" CommandParameter="fitness" />
-            <Button Grid.Row="9" Grid.Column="0" Text="Disease" Command="{Binding SelectTopicCommand}" CommandParameter="disease" />
+            <Button Grid.Row="9" Grid.Column="0" Text="Space" Command="{Binding SelectTopicCommand}" CommandParameter="space" />
+            <Button Grid.Row="9" Grid.Column="1" Text="Art" Command="{Binding SelectTopicCommand}" CommandParameter="art" />
         </Grid>
     </ScrollView>
 </ContentPage>
