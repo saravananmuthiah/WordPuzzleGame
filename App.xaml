@@ -15,6 +15,7 @@
             <conv:BoolToColorConverter x:Key="BoolToColorConverter" />
             <conv:StringToOpacityConverter x:Key="StringToOpacityConverter" />
             <conv:ThemeListConverter x:Key="ThemeListConverter" />
+            <conv:UriDecodeConverter x:Key="UriDecodeConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

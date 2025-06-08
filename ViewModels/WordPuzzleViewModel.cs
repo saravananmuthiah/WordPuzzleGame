@@ -275,7 +275,7 @@ namespace WordPuzzleGame.ViewModels
                     var url = $"https://api.datamuse.com/words?sp={pattern}&md=d&max=20";
                     if (!string.IsNullOrEmpty(SelectedTopic))
                     {
-                        url += $"&ml={SelectedTopic}&topics={SelectedTopic}";
+                        url += $"&topics={SelectedTopic}";
                     }
                     var response = await httpClient.GetStringAsync(url);
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
