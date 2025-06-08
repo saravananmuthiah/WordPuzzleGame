@@ -7,7 +7,9 @@
     Title="WordPuzzleGame">
 
     <ShellContent
-        Title="Home"
+        ContentTemplate="{DataTemplate local:TopicSelectionPage}"
+        Route="TopicSelectionPage" />
+    <ShellContent
         ContentTemplate="{DataTemplate local:MainPage}"
         Route="MainPage" />
 

@@ -5,19 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Media;
+using System.Text.Json;
 
 namespace WordPuzzleGame.ViewModels
 {
-    // ViewModel for the word puzzle game, implements INotifyPropertyChanged for data binding
-    public class WordPuzzleViewModel : INotifyPropertyChanged
+    public partial class WordPuzzleViewModel : INotifyPropertyChanged, IQueryAttributable
     {
-        private readonly string[] _words = new[]
-        {
-            "cat", "dog", "sun", "car", "hat", "book", "star", "frog", "milk", "tree", "fish", "cake", "bird", "lamp", "ring",
-            // Added more 3- and 4-letter words
-            "moon", "wolf", "bear", "lion", "goat", "duck", "goat", "pear", "rose", "leaf", "snow", "wind", "rain", "fire", "rock", "sand", "ship", "door", "king", "quiz", "jump", "blue", "pink", "gold", "ruby", "opal", "mint", "corn", "rice", "bean", "cake", "desk", "fork", "hand", "jazz", "kite", "lake", "mask", "nest", "oven", "park", "quiz", "rope", "sock", "toad", "unit", "vase", "wave", "yarn", "zinc"
-        };
         private readonly Random _random = new();
         private string? _currentWord;
         private string? _shuffledWord;
@@ -26,19 +19,42 @@ namespace WordPuzzleGame.ViewModels
         private bool _isSuccess;
         private bool _isError;
         private bool _isInputEnabled = true;
-        private ObservableCollection<string> _remainingWords;
+        private string? _hint;
+        public string? Hint
+        {
+            get => _hint;
+            set { _hint = value; OnPropertyChanged(nameof(Hint)); }
+        }
+
+        private string? _selectedTopic;
+        public string? SelectedTopic
+        {
+            get => _selectedTopic;
+            set
+            {
+                if (_selectedTopic != value)
+                {
+                    _selectedTopic = value;
+                    OnPropertyChanged(nameof(SelectedTopic));
+                    // Load a new word when the topic changes
+                    NextWord();
+                }
+            }
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
         public WordPuzzleViewModel()
         {
-            _remainingWords = new ObservableCollection<string>(_words.OrderBy(_ => _random.Next()));
+            // Removed _remainingWords and _words usage. Only use Datamuse API.
             ShuffledWordTiles = new ObservableCollection<string>();
             UserTiles = new ObservableCollection<string>();
             NextWord();
             SubmitCommand = new Command(async () => await SubmitAsync(), () => IsInputEnabled);
             ShuffleCommand = new Command(ShuffleWord, () => IsInputEnabled);
             TileTapCommand = new Command<string>(OnTileTapped, CanTapTile);
+            RefreshHintCommand = new Command(RefreshHint, () => IsInputEnabled);
+            GoToTopicSelectionCommand = new Command(async () => await GoToTopicSelectionAsync());
         }
 
         public string? ShuffledWord
@@ -80,6 +96,8 @@ namespace WordPuzzleGame.ViewModels
         public ICommand SubmitCommand { get; }
         public ICommand ShuffleCommand { get; }
         public ICommand TileTapCommand { get; }
+        public ICommand RefreshHintCommand { get; }
+        public ICommand GoToTopicSelectionCommand { get; }
 
         private ObservableCollection<string> _shuffledWordTiles = new();
         public ObservableCollection<string> ShuffledWordTiles
@@ -98,26 +116,9 @@ namespace WordPuzzleGame.ViewModels
         // Move to the next word, shuffle it, and reset state
         private void NextWord()
         {
-            if (_remainingWords.Count == 0)
-            {
-                ShuffledWord = "Game Over!";
-                ShuffledWordTiles.Clear();
-                UserTiles.Clear();
-                IsInputEnabled = false;
-                Message = "You solved all words!";
-                return;
-            }
-            _currentWord = _remainingWords[0];
-            _remainingWords.RemoveAt(0);
-            ShuffledWord = Shuffle(_currentWord!);
-            ShuffledWordTiles = new ObservableCollection<string>(ShuffledWord.ToCharArray().Select(c => c.ToString()));
-            UserTiles = new ObservableCollection<string>(Enumerable.Repeat(string.Empty, _currentWord.Length));
-            UserGuess = string.Empty;
-            Message = string.Empty;
-            IsSuccess = false;
-            IsError = false;
-            IsInputEnabled = true;
+            _ = LoadRandomWordAsync();
         }
+
 
         // Shuffle the letters of the word
         private string Shuffle(string word)
@@ -193,6 +194,86 @@ namespace WordPuzzleGame.ViewModels
                     SubmitCommand.Execute(null);
                 }
             }
+        }
+
+        private void RefreshHint()
+        {
+            if (!string.IsNullOrEmpty(_currentWord))
+            {
+                // Provide a new hint if available (e.g., next definition if multiple)
+                if (_currentWordDefs != null && _currentWordDefs.Length > 1)
+                {
+                    _currentHintIndex = (_currentHintIndex + 1) % _currentWordDefs.Length;
+                    Hint = $"Hint: {_currentWordDefs[_currentHintIndex].Split('\t').LastOrDefault()}";
+                }
+            }
+        }
+
+        private string[]? _currentWordDefs;
+        private int _currentHintIndex = 0;
+
+        public void ApplyQueryAttributes(IDictionary<string, object> query)
+        {
+            if (query.TryGetValue("topic", out var topicObj) && topicObj is string topic)
+            {
+                SelectedTopic = topic;
+            }
+        }
+
+        private async Task LoadRandomWordAsync()
+        {
+            try
+            {
+                var httpClient = new HttpClient();
+                var length = _random.Next(2) == 0 ? 3 : 4;
+                var pos = _random.Next(length);
+                char randomChar = (char)('a' + _random.Next(26));
+                char[] patternArr = Enumerable.Repeat('?', length).ToArray();
+                patternArr[pos] = randomChar;
+                var pattern = new string(patternArr);
+                var url = $"https://api.datamuse.com/words?sp={pattern}&md=d&max=20";
+                if (!string.IsNullOrEmpty(SelectedTopic))
+                {
+                    url += $"&topics={SelectedTopic}";
+                }
+                var response = await httpClient.GetStringAsync(url);
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var words = JsonSerializer.Deserialize<List<DatamuseWord>>(response, options);
+                var valid = words?.Where(w => !string.IsNullOrEmpty(w.Word) && w.Defs != null && w.Defs.Length > 0).ToList();
+                if (valid == null || valid.Count == 0)
+                {
+                    ShuffledWord = "No valid words";
+                    Hint = "Hint: No hint available.";
+                    _currentWordDefs = null;
+                    _currentHintIndex = 0;
+                    return;
+                }
+                var chosen = valid[_random.Next(valid.Count)];
+                _currentWord = chosen.Word.ToLower();
+                _currentWordDefs = chosen.Defs;
+                _currentHintIndex = 0;
+                Hint = $"Hint: {_currentWordDefs[0].Split('\t').LastOrDefault()}";
+                ShuffledWord = Shuffle(_currentWord!);
+                ShuffledWordTiles = new ObservableCollection<string>(ShuffledWord.ToCharArray().Select(c => c.ToString()));
+                UserTiles = new ObservableCollection<string>(Enumerable.Repeat(string.Empty, _currentWord.Length));
+                UserGuess = string.Empty;
+                Message = string.Empty;
+                IsSuccess = false;
+                IsError = false;
+                IsInputEnabled = true;
+            }
+            catch
+            {
+                ShuffledWord = "Error";
+                Hint = "Hint: Could not load word.";
+                _currentWordDefs = null;
+                _currentHintIndex = 0;
+            }
+        }
+
+        private async Task GoToTopicSelectionAsync()
+        {
+            await Shell.Current.GoToAsync("//TopicSelectionPage");
         }
 
         protected void OnPropertyChanged(string propertyName) =>

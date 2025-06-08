@@ -30,11 +30,13 @@
                     x:Name="TilesPanel"
                     Margin="0,10,0,10"
                     HorizontalOptions="Center"
-                    Spacing="40">
+                    Spacing="40"
+                    HeightRequest="80">
                     <CollectionView
                         ItemsLayout="HorizontalList"
                         ItemsSource="{Binding ShuffledWordTiles}"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        HeightRequest="66">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border
@@ -66,12 +68,14 @@
                     x:Name="DropPanel"
                     Margin="0,10,0,10"
                     HorizontalOptions="Center"
-                    Spacing="20">
+                    Spacing="20"
+                    HeightRequest="80">
                     <!--  Increased spacing from 10 to 20  -->
                     <CollectionView
                         ItemsLayout="HorizontalList"
                         ItemsSource="{Binding UserTiles}"
-                        SelectionMode="None">
+                        SelectionMode="None"
+                        HeightRequest="66">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
                                 <Border
@@ -95,6 +99,40 @@
                     </CollectionView>
                 </HorizontalStackLayout>
 
+                <HorizontalStackLayout HorizontalOptions="Center" Spacing="10" HeightRequest="64">
+                    <Label
+                        FontSize="16"
+                        HorizontalOptions="Center"
+                        Text="{Binding Hint}"
+                        TextColor="Gray"
+                        FontAttributes="Italic"
+                        LineBreakMode="WordWrap"
+                        MaxLines="4"
+                        WidthRequest="300"
+                        VerticalOptions="Center" />
+                    <ImageButton
+                        Source="refresh.png"
+                        HeightRequest="24"
+                        WidthRequest="24"
+                        BackgroundColor="Transparent"
+                        Command="{Binding RefreshHintCommand}"
+                        IsVisible="{Binding Hint, Converter={StaticResource StringToOpacityConverter}}"
+                        VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <Button
+                    Text="Back to Topic Selection"
+                    Command="{Binding GoToTopicSelectionCommand}"
+                    HorizontalOptions="Center"
+                    Margin="0,10,0,0"
+                    HeightRequest="40"
+                    WidthRequest="220"
+                    FontSize="14"
+                    BackgroundColor="#e0e7ff"
+                    TextColor="#4e8cff"
+                    CornerRadius="20"
+                    />
+
                 <!--  Feedback message  -->
                 <Label
                     Margin="0,20,0,0"
@@ -102,8 +140,9 @@
                     HorizontalOptions="Center"
                     Opacity="{Binding Message, Converter={StaticResource StringToOpacityConverter}}"
                     Text="{Binding Message}"
-                    TextColor="{Binding IsSuccess, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green,Red'}" />
-            </VerticalStackLayout>
+                    TextColor="{Binding IsSuccess, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green,Red'}"
+                    HeightRequest="36" />
+</VerticalStackLayout>
         </ScrollView>
     </Grid>
 
