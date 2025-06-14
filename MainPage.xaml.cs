@@ -1,18 +1,82 @@
 ﻿using Microsoft.Maui.ApplicationModel.DataTransfer;
 using WordPuzzleGame.ViewModels;
+using WordPuzzleGame.Services;
+using System.Collections.Specialized;
+using System.ComponentModel;
 
 namespace WordPuzzleGame;
 
 public partial class MainPage : ContentPage
 {
+    private const string BackgroundAudio = "background.wav";
+    private const string SuccessAudio = "success.mp3";
+    private const string LetterInsertedAudio = "letter_inserted.wav";
+    private bool _isLoaded = false;
+    private int _lastUserTilesFilled = 0;
+
     public MainPage()
     {
         InitializeComponent();
-        // Set the BindingContext to the ViewModel (also set in XAML for design-time support)
         BindingContext = new WordPuzzleViewModel();
+        this.Loaded += MainPage_Loaded;
+        this.Unloaded += MainPage_Unloaded;
     }
 
     private WordPuzzleViewModel? ViewModel => BindingContext as WordPuzzleViewModel;
+
+    private async void MainPage_Loaded(object? sender, EventArgs e)
+    {
+        if (_isLoaded) return;
+        _isLoaded = true;
+        await AudioService.PlaySoundAsync(BackgroundAudio);
+        if (ViewModel != null)
+        {
+            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+            if (ViewModel.UserTiles is INotifyCollectionChanged coll)
+                coll.CollectionChanged += UserTiles_CollectionChanged;
+            _lastUserTilesFilled = ViewModel.UserTiles.Count(x => !string.IsNullOrEmpty(x));
+        }
+    }
+
+    private void MainPage_Unloaded(object? sender, EventArgs e)
+    {
+        _isLoaded = false;
+        AudioService.StopSound();
+        if (ViewModel != null)
+        {
+            ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+            if (ViewModel.UserTiles is INotifyCollectionChanged coll)
+                coll.CollectionChanged -= UserTiles_CollectionChanged;
+        }
+    }
+
+    private async void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(WordPuzzleViewModel.IsSuccess) && ViewModel != null && ViewModel.IsSuccess)
+        {
+            await AudioService.PlaySoundAsync(SuccessAudio);
+        }
+        if (e.PropertyName == nameof(WordPuzzleViewModel.UserTiles) && ViewModel != null)
+        {
+            if (ViewModel.UserTiles is INotifyCollectionChanged coll)
+            {
+                coll.CollectionChanged -= UserTiles_CollectionChanged;
+                coll.CollectionChanged += UserTiles_CollectionChanged;
+            }
+            _lastUserTilesFilled = ViewModel.UserTiles.Count(x => !string.IsNullOrEmpty(x));
+        }
+    }
+
+    private async void UserTiles_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (ViewModel == null) return;
+        int filled = ViewModel.UserTiles.Count(x => !string.IsNullOrEmpty(x));
+        if (filled > _lastUserTilesFilled)
+        {
+            await AudioService.PlaySoundAsync(LetterInsertedAudio);
+        }
+        _lastUserTilesFilled = filled;
+    }
 
     // Handle drag start for a tile
     private void OnTileDragStarting(object sender, DragStartingEventArgs e)

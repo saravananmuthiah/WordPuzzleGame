@@ -4,62 +4,23 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:vm="clr-namespace:WordPuzzleGame.ViewModels"
-    Title="Word Puzzle">
+    Title="Word Puzzle"
+    BackgroundColor="{AppThemeBinding Light={StaticResource Background}, Dark={StaticResource OffBlack}}">
 
     <ContentPage.BindingContext>
         <vm:WordPuzzleViewModel />
     </ContentPage.BindingContext>
 
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <!-- Light theme -->
-            <Style x:Key="TopicLabelStyle" TargetType="Label">
-                <Setter Property="FontSize" Value="20" />
-                <Setter Property="FontAttributes" Value="Bold" />
-                <Setter Property="TextColor" Value="#4e8cff" />
-            </Style>
-            <Style x:Key="TileBorderStyle" TargetType="Border">
-                <Setter Property="BackgroundColor" Value="#e0e7ff" />
-                <Setter Property="Stroke" Value="#4e8cff" />
-            </Style>
-            <Style x:Key="DropBorderStyle" TargetType="Border">
-                <Setter Property="BackgroundColor" Value="#fff7e6" />
-                <Setter Property="Stroke" Value="#ffb84e" />
-            </Style>
-            <Style x:Key="MainPageBackground" TargetType="ContentPage">
-                <Setter Property="BackgroundColor" Value="White" />
-            </Style>
-            <!-- Dark theme -->
-            <Style x:Key="TopicLabelStyleDark" TargetType="Label">
-                <Setter Property="FontSize" Value="20" />
-                <Setter Property="FontAttributes" Value="Bold" />
-                <Setter Property="TextColor" Value="#90c4ff" />
-            </Style>
-            <Style x:Key="TileBorderStyleDark" TargetType="Border">
-                <Setter Property="BackgroundColor" Value="#1a2233" />
-                <Setter Property="Stroke" Value="#90c4ff" />
-            </Style>
-            <Style x:Key="DropBorderStyleDark" TargetType="Border">
-                <Setter Property="BackgroundColor" Value="#2a2a2a" />
-                <Setter Property="Stroke" Value="#ffd580" />
-            </Style>
-            <Style x:Key="MainPageBackgroundDark" TargetType="ContentPage">
-                <Setter Property="BackgroundColor" Value="#181818" />
-            </Style>
-        </ResourceDictionary>
-    </ContentPage.Resources>
-
     <Grid>
-        <!-- Beautiful background image -->
-        <Image Source="dotnet_bot.png"
+        <!-- Soft background image for the puzzle -->
+        <Image Source="puzzle_bg.png"
                Aspect="AspectFill"
-               Opacity="0.25"
-               IsVisible="True"
+               Opacity="0.13"
                VerticalOptions="FillAndExpand"
                HorizontalOptions="FillAndExpand"
-               ZIndex="0" />
+               ZIndex="1" />
 
-        <ScrollView ZIndex="1">
+        <ScrollView ZIndex="2">
             <VerticalStackLayout
                 Padding="30,0"
                 Spacing="25"
@@ -67,7 +28,7 @@
                 <!-- Topic label -->
                 <Label
                     Text="{Binding SelectedTopic, Converter={StaticResource UriDecodeConverter}, StringFormat='Topic: {0}'}"
-                    Style="{AppThemeBinding Light={StaticResource TopicLabelStyle}, Dark={StaticResource TopicLabelStyleDark}}"
+                    Style="{StaticResource Headline}"
                     HorizontalOptions="Center"
                     Margin="0,10,0,0" />
 
@@ -88,7 +49,8 @@
                                 <Border
                                     Margin="0,0,10,0"
                                     Padding="10,0,10,10"
-                                    Style="{AppThemeBinding Light={StaticResource TileBorderStyle}, Dark={StaticResource TileBorderStyleDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryLight}, Dark={StaticResource Gray950}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryLight}}"
                                     HeightRequest="66"
                                     VerticalOptions="End"
                                     WidthRequest="56">
@@ -97,7 +59,8 @@
                                         FontSize="36"
                                         HorizontalOptions="Center"
                                         Text="{Binding .}"
-                                        VerticalOptions="End" />
+                                        VerticalOptions="End"
+                                        TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryLight}}" />
                                     <Border.GestureRecognizers>
                                         <TapGestureRecognizer Command="{Binding BindingContext.TileTapCommand, Source={x:Reference Name=TilesPanel}}" CommandParameter="{Binding .}" />
                                     </Border.GestureRecognizers>
@@ -114,7 +77,6 @@
                     HorizontalOptions="Center"
                     Spacing="20"
                     HeightRequest="80">
-                    <!--  Increased spacing from 10 to 20  -->
                     <CollectionView
                         ItemsLayout="HorizontalList"
                         ItemsSource="{Binding UserTiles}"
@@ -125,7 +87,8 @@
                                 <Border
                                     Margin="0,0,10,0"
                                     Padding="10,0,10,10"
-                                    Style="{AppThemeBinding Light={StaticResource DropBorderStyle}, Dark={StaticResource DropBorderStyleDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Secondary}, Dark={StaticResource Gray900}}"
+                                    Stroke="{AppThemeBinding Light={StaticResource Tertiary}, Dark={StaticResource Gray500}}"
                                     HeightRequest="66"
                                     VerticalOptions="End"
                                     WidthRequest="56">
@@ -134,7 +97,8 @@
                                         FontSize="36"
                                         HorizontalOptions="Center"
                                         Text="{Binding .}"
-                                        VerticalOptions="End" />
+                                        VerticalOptions="End"
+                                        TextColor="{AppThemeBinding Light={StaticResource OnSecondary}, Dark={StaticResource OnSecondary}}" />
                                 </Border>
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
@@ -146,14 +110,14 @@
                         FontSize="16"
                         HorizontalOptions="Start"
                         Text="{Binding Hint}"
-                        TextColor="Gray"
+                        TextColor="{AppThemeBinding Light={StaticResource Gray900}, Dark={StaticResource Gray200}}"
                         FontAttributes="Italic"
                         LineBreakMode="WordWrap"
                         MaxLines="4"
                         WidthRequest="260"
                         VerticalOptions="Center" />
                     <ImageButton
-                        Source="refresh.png"
+                        Source="refresh.svg"
                         HeightRequest="28"
                         WidthRequest="28"
                         BackgroundColor="Transparent"
@@ -172,8 +136,8 @@
                     HeightRequest="40"
                     WidthRequest="220"
                     FontSize="14"
-                    BackgroundColor="#e0e7ff"
-                    TextColor="#4e8cff"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource PrimaryLight}, Dark={StaticResource Gray950}}"
+                    TextColor="{AppThemeBinding Light={StaticResource Primary}, Dark={StaticResource PrimaryLight}}"
                     CornerRadius="20"
                     />
 
@@ -184,9 +148,9 @@
                     HorizontalOptions="Center"
                     Opacity="{Binding Message, Converter={StaticResource StringToOpacityConverter}}"
                     Text="{Binding Message}"
-                    TextColor="{Binding IsSuccess, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Green,Red'}"
+                    TextColor="{Binding IsSuccess, Converter={StaticResource BoolToColorConverter}, ConverterParameter='Primary,Error'}"
                     HeightRequest="36" />
-</VerticalStackLayout>
+            </VerticalStackLayout>
         </ScrollView>
     </Grid>
 

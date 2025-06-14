@@ -9,19 +9,27 @@
 
     <Shell.FlyoutHeader>
         <VerticalStackLayout Padding="20" Spacing="10">
-            <Label Text="Theme" FontSize="16" VerticalOptions="Center" />
+            <Label
+                FontSize="16"
+                Text="Theme"
+                VerticalOptions="Center" />
             <Picker
                 ItemsSource="{Binding Source={x:Static vm:ThemeViewModel.Themes}}"
                 SelectedItem="{Binding ThemeVM.CurrentTheme, Mode=TwoWay}"
-                VerticalOptions="Center"/>
+                VerticalOptions="Center" />
         </VerticalStackLayout>
     </Shell.FlyoutHeader>
 
-    <ShellContent
-        ContentTemplate="{DataTemplate local:TopicSelectionPage}"
-        Route="TopicSelectionPage" />
-    <ShellContent
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <ShellContent ContentTemplate="{DataTemplate local:TopicSelectionPage}" Route="TopicSelectionPage" />
+    <ShellContent ContentTemplate="{DataTemplate local:MainPage}" Route="MainPage" />
+    <!--  GamePage is navigated to via Shell.Current.GoToAsync, not as a ShellContent  -->
+
+    <Shell.NavBarIsVisible>
+        <OnIdiom x:TypeArguments="x:Boolean">
+            <OnIdiom.Phone>False</OnIdiom.Phone>
+            <OnIdiom.Tablet>False</OnIdiom.Tablet>
+            <OnIdiom.Desktop>False</OnIdiom.Desktop>
+        </OnIdiom>
+    </Shell.NavBarIsVisible>
 
 </Shell>
